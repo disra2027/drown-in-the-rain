@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNavigation from "@/components/BottomNavigation";
+import WishlistModal from "@/components/WishlistModal";
 
 // Type definitions
 type Priority = 'low' | 'medium' | 'high' | 'urgent';
@@ -961,94 +962,161 @@ export default function WishlistPage() {
           </div>
         )}
 
-        {/* Add Item Modal */}
+        {/* Add Item Modal - Using New WishlistModal */}
         {showAddForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in-0 duration-300">
-            <div className="bg-card rounded-lg border p-4 w-full max-w-md animate-in zoom-in-95 duration-300">
-              <h2 className="text-lg font-semibold mb-4">Add New Item</h2>
-              
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Item name *"
-                  value={newItem.name || ''}
-                  onChange={(e) => setNewItem({...newItem, name: e.target.value})}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                />
-                
-                <textarea
-                  placeholder="Description"
-                  value={newItem.description || ''}
-                  onChange={(e) => setNewItem({...newItem, description: e.target.value})}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  rows={2}
-                />
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    placeholder="Price"
-                    value={newItem.price || ''}
-                    onChange={(e) => setNewItem({...newItem, price: parseFloat(e.target.value) || undefined})}
-                    className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  />
-                  
-                  <select
-                    value={newItem.category || 'other'}
-                    onChange={(e) => setNewItem({...newItem, category: e.target.value as Category})}
-                    className="bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  >
-                    {Object.entries(categoryEmojis).map(([category, emoji]) => (
-                      <option key={category} value={category}>{emoji} {category}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <select
-                  value={newItem.priority || 'medium'}
-                  onChange={(e) => setNewItem({...newItem, priority: e.target.value as Priority})}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                >
-                  <option value="low">🔵 Low Priority</option>
-                  <option value="medium">🟡 Medium Priority</option>
-                  <option value="high">🟠 High Priority</option>
-                  <option value="urgent">🔴 Urgent</option>
-                </select>
-                
-                <input
-                  type="url"
-                  placeholder="Link (optional)"
-                  value={newItem.url || ''}
-                  onChange={(e) => setNewItem({...newItem, url: e.target.value})}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                />
-                
-                <textarea
-                  placeholder="Notes"
-                  value={newItem.notes || ''}
-                  onChange={(e) => setNewItem({...newItem, notes: e.target.value})}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  rows={2}
-                />
-              </div>
-              
-              <div className="flex gap-2 mt-4">
+          <WishlistModal
+            onClose={() => setShowAddForm(false)}
+            title="Add Dream Item"
+            icon="✨"
+            size="md"
+            footer={
+              <div className="flex gap-3">
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="flex-1 bg-muted text-muted-foreground px-4 py-2 rounded-lg hover:bg-muted/80 transition-colors"
+                  className="flex-1 px-4 py-2 bg-muted/20 text-muted-foreground hover:bg-muted/30 hover:text-foreground rounded-xl transition-all duration-300 border border-muted/30 hover:border-muted/50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddItem}
                   disabled={!newItem.name?.trim()}
-                  className="flex-1 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-gold to-gold/80 text-black rounded-xl font-semibold hover:from-gold/90 hover:to-gold/70 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-gold/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  Add Item
+                  ✨ Add Dream
                 </button>
               </div>
+            }
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Dream Item Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="What do you dream of? *"
+                  value={newItem.name || ''}
+                  onChange={(e) => setNewItem({...newItem, name: e.target.value})}
+                  className="w-full bg-background/50 border border-gold/20 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all duration-300 backdrop-blur-sm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Description
+                </label>
+                <textarea
+                  placeholder="Tell us about your dream..."
+                  value={newItem.description || ''}
+                  onChange={(e) => setNewItem({...newItem, description: e.target.value})}
+                  className="w-full bg-background/50 border border-gold/20 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all duration-300 backdrop-blur-sm resize-none"
+                  rows={2}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
+                    Price
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gold font-bold">$</span>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={newItem.price || ''}
+                      onChange={(e) => setNewItem({...newItem, price: parseFloat(e.target.value) || undefined})}
+                      className="w-full bg-background/50 border border-gold/20 rounded-xl pl-8 pr-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all duration-300 backdrop-blur-sm"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={newItem.category || 'other'}
+                    onChange={(e) => setNewItem({...newItem, category: e.target.value as Category})}
+                    className="w-full bg-background/50 border border-gold/20 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all duration-300 backdrop-blur-sm"
+                  >
+                    {Object.entries(categoryEmojis).map(([category, emoji]) => (
+                      <option key={category} value={category}>{emoji} {category}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Priority
+                </label>
+                <select
+                  value={newItem.priority || 'medium'}
+                  onChange={(e) => setNewItem({...newItem, priority: e.target.value as Priority})}
+                  className="w-full bg-background/50 border border-gold/20 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all duration-300 backdrop-blur-sm"
+                >
+                  <option value="low">🔵 Low Priority</option>
+                  <option value="medium">🟡 Medium Priority</option>
+                  <option value="high">🟠 High Priority</option>
+                  <option value="urgent">🔴 Urgent</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Link (Optional)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={newItem.url || ''}
+                  onChange={(e) => setNewItem({...newItem, url: e.target.value})}
+                  className="w-full bg-background/50 border border-gold/20 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all duration-300 backdrop-blur-sm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Personal Notes
+                </label>
+                <textarea
+                  placeholder="Why do you want this? Any special notes..."
+                  value={newItem.notes || ''}
+                  onChange={(e) => setNewItem({...newItem, notes: e.target.value})}
+                  className="w-full bg-background/50 border border-gold/20 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50 transition-all duration-300 backdrop-blur-sm resize-none"
+                  rows={2}
+                />
+              </div>
+
+              {/* Preview Card */}
+              {(newItem.name || newItem.price) && (
+                <div className="bg-gradient-to-br from-gold/10 via-gold/5 to-transparent border border-gold/30 rounded-2xl p-4 mt-2">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">{categoryEmojis[newItem.category || 'other']}</span>
+                    <div>
+                      <h3 className="font-bold text-foreground">{newItem.name || "Your Dream Item"}</h3>
+                      {newItem.price && (
+                        <p className="text-lg font-bold text-gold">
+                          ${newItem.price.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {newItem.description && (
+                    <p className="text-sm text-muted-foreground bg-black/20 rounded-lg p-3 mb-2">
+                      💭 {newItem.description}
+                    </p>
+                  )}
+                  {newItem.notes && (
+                    <p className="text-xs text-muted-foreground bg-gold/10 rounded-lg p-2">
+                      📝 {newItem.notes}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
+          </WishlistModal>
         )}
 
         <BottomNavigation />
