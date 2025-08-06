@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { useAppState } from "@/hooks/useAppState";
@@ -404,6 +405,62 @@ export default function Home() {
           onInvestmentClick={() => setShowInvestmentModal(true)}
           onTransactionClick={handleTransactionClick}
         />
+
+        {/* Quick Notes Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground flex items-center">
+              <span className="text-xl mr-2">📝</span>
+              Recent Notes
+            </h3>
+            <Link 
+              href="/notes"
+              className="text-sm text-gold hover:text-gold-light transition-colors"
+            >
+              View All Notes
+            </Link>
+          </div>
+          
+          {notes.length === 0 ? (
+            <div className="bg-card rounded-2xl p-6 border border-border/50 text-center">
+              <div className="text-4xl mb-3">📝</div>
+              <p className="text-muted-foreground mb-4">No notes yet</p>
+              <button
+                onClick={handleNoteClick}
+                className="px-4 py-2 bg-gold text-background rounded-lg font-medium hover:bg-gold-light transition-all duration-300 focus-ring-luxury hover:scale-105 transform"
+              >
+                Create First Note
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {notes.slice(0, 4).map((note, index) => (
+                <div
+                  key={note.id}
+                  onClick={() => {
+                    setEditingNote(note);
+                    setShowNoteModal(true);
+                  }}
+                  className="bg-card rounded-2xl p-4 border border-border/50 hover:border-gold/30 transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 scale-in group"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-foreground line-clamp-1 group-hover:text-gold transition-colors">
+                      {note.title}
+                    </h4>
+                    <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                      {new Date(note.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                    {note.content.replace(/[•✨📖\n]/g, ' ').substring(0, 100)}
+                    {note.content.length > 100 ? '...' : ''}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Goals Section */}
         <div className="space-y-4">

@@ -9,6 +9,10 @@ interface Note {
   content: string;
   createdAt: Date;
   updatedAt: Date;
+  category?: string;
+  tags?: string[];
+  isPinned?: boolean;
+  color?: string;
 }
 
 interface NoteModalProps {
@@ -18,9 +22,14 @@ interface NoteModalProps {
   existingNote?: Note;
 }
 
+const categories = ["Personal", "Planning", "Ideas", "Learning", "Books", "Wellness"];
+
 export default function NoteModal({ isOpen, onClose, onSave, existingNote }: NoteModalProps) {
   const [title, setTitle] = useState(existingNote?.title || "");
   const [content, setContent] = useState(existingNote?.content || "");
+  const [category, setCategory] = useState(existingNote?.category || "Personal");
+  const [tags, setTags] = useState<string[]>(existingNote?.tags || []);
+  const [tagInput, setTagInput] = useState("");
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
@@ -33,13 +42,19 @@ export default function NoteModal({ isOpen, onClose, onSave, existingNote }: Not
     }
   }, [isOpen]);
 
-  // Reset form when modal closes
+  // Reset form when modal closes or existingNote changes
   useEffect(() => {
-    if (!isOpen) {
-      if (!existingNote) {
-        setTitle("");
-        setContent("");
-      }
+    if (existingNote) {
+      setTitle(existingNote.title);
+      setContent(existingNote.content);
+      setCategory(existingNote.category || "Personal");
+      setTags(existingNote.tags || []);
+    } else if (!isOpen) {
+      setTitle("");
+      setContent("");
+      setCategory("Personal");
+      setTags([]);
+      setTagInput("");
     }
   }, [isOpen, existingNote]);
 
@@ -47,9 +62,32 @@ export default function NoteModal({ isOpen, onClose, onSave, existingNote }: Not
     if (title.trim() || content.trim()) {
       onSave({
         title: title.trim() || "Untitled Note",
-        content: content.trim()
+        content: content.trim(),
+        category,
+        tags: tags.filter(tag => tag.trim().length > 0),
+        isPinned: existingNote?.isPinned || false,
+        color: existingNote?.color || "bg-card"
       });
       onClose();
+    }
+  };
+
+  const addTag = () => {
+    const newTag = tagInput.trim().toLowerCase();
+    if (newTag && !tags.includes(newTag)) {
+      setTags([...tags, newTag]);
+      setTagInput("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag();
     }
   };
 
@@ -104,6 +142,72 @@ export default function NoteModal({ isOpen, onClose, onSave, existingNote }: Not
               maxLength={200}
             />
             <div className="h-px bg-border mt-2"></div>
+          </div>
+
+          {/* Category and Tags */}
+          <div className="space-y-3">
+            {/* Category Selection */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Tags</label>
+              
+              {/* Existing Tags */}
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-2 py-1 bg-gold/20 text-gold text-xs rounded-full"
+                    >
+                      #{tag}
+                      <button
+                        onClick={() => removeTag(tag)}
+                        className="ml-1 text-gold/70 hover:text-gold"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Tag Input */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Add tags (press Enter or comma to add)"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagInputKeyDown}
+                  className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold transition-all"
+                />
+                <button
+                  onClick={addTag}
+                  disabled={!tagInput.trim()}
+                  className="px-3 py-2 bg-gold/20 text-gold rounded-lg hover:bg-gold/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Press Enter or comma to add multiple tags
+              </p>
+            </div>
           </div>
 
           {/* Content Textarea */}
