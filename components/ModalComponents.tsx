@@ -120,25 +120,25 @@ export function CounterControl({
 }
 
 // Preset buttons grid
-interface PresetButtonsProps {
+interface PresetButtonsProps<T = string | number> {
   presets: Array<{
     label: string;
-    value: any;
+    value: T;
     subtitle?: string;
   }>;
-  currentValue: any;
-  onSelect: (value: any) => void;
+  currentValue: T;
+  onSelect: (value: T) => void;
   className?: string;
   columns?: number;
 }
 
-export function PresetButtons({
+export function PresetButtons<T = string | number>({
   presets,
   currentValue,
   onSelect,
   className = "",
   columns = 2
-}: PresetButtonsProps) {
+}: PresetButtonsProps<T>) {
   const gridClass = columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4";
   
   return (
@@ -173,6 +173,7 @@ interface ModalActionsProps {
   cancelLabel?: string;
   confirmLabel?: string;
   className?: string;
+  hideCancel?: boolean;
 }
 
 export function ModalActions({
@@ -180,16 +181,19 @@ export function ModalActions({
   onConfirm,
   cancelLabel = "Cancel",
   confirmLabel = "Save",
-  className = ""
+  className = "",
+  hideCancel = false
 }: ModalActionsProps) {
   return (
     <div className={`flex space-x-3 ${className}`}>
-      <button
-        onClick={onCancel}
-        className="flex-1 py-3 px-4 bg-muted text-foreground rounded-lg font-medium hover:bg-muted/80 transition-colors focus-ring-luxury"
-      >
-        {cancelLabel}
-      </button>
+      {!hideCancel && (
+        <button
+          onClick={onCancel}
+          className="flex-1 py-3 px-4 bg-muted text-foreground rounded-lg font-medium hover:bg-muted/80 transition-colors focus-ring-luxury"
+        >
+          {cancelLabel}
+        </button>
+      )}
       <button
         onClick={onConfirm}
         className="flex-1 py-3 px-4 bg-gold text-background rounded-lg font-medium hover:bg-gold-light transition-colors focus-ring-luxury"

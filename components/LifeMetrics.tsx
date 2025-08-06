@@ -1,5 +1,5 @@
 import Modal from '@/components/Modal';
-import { ModalSection, StatusCard, ProgressBar, CounterControl, PresetButtons, ModalActions } from '@/components/ModalComponents';
+// import { ProgressBar, CounterControl } from '@/components/ModalComponents';
 import { useCallback, useRef, useEffect } from 'react';
 
 interface LifeMetricsProps {

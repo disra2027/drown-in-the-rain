@@ -45,7 +45,6 @@ describe('MusicPlayer', () => {
     render(<MusicPlayer {...defaultProps} />);
 
     // Find the next button by its SVG path
-    const nextButton = screen.getByRole('button');
     const nextButtons = screen.getAllByRole('button');
     const nextBtn = nextButtons.find(btn => 
       btn.querySelector('svg path[d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"]')

@@ -149,7 +149,7 @@ export default function SavingsGoalModal({
               Saving <span className="font-bold text-gold">${monthlyTarget}</span> monthly
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              You'll reach your goal in approximately
+              You&apos;ll reach your goal in approximately
             </p>
             <p className="text-2xl font-bold text-gold mt-1">
               {monthsToGoal} months

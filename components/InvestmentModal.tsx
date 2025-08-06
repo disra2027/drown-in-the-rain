@@ -19,7 +19,6 @@ interface Investment {
 interface InvestmentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  totalInvestmentValue: number;
 }
 
 const mockInvestments: Investment[] = [
@@ -71,8 +70,7 @@ const mockInvestments: Investment[] = [
 
 export default function InvestmentModal({ 
   isOpen, 
-  onClose,
-  totalInvestmentValue
+  onClose
 }: InvestmentModalProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   

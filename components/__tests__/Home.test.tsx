@@ -300,7 +300,7 @@ describe('Home Component Integration', () => {
     const mockLogout = jest.fn();
     
     // Override the mock for this test
-    jest.mocked(require('@/hooks/useAuth').useAuth).mockReturnValue({
+    jest.mocked(import('@/hooks/useAuth').useAuth).mockReturnValue({
       user: { name: 'Test User' },
       logout: mockLogout
     });

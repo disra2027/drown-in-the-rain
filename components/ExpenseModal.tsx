@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Modal from "./Modal";
+import { ModalSection, ModalActions } from "./ModalComponents";
 import ExpenseChart from "./ExpenseChart";
 
 interface ExpenseItem {
@@ -15,6 +16,7 @@ interface ExpenseItem {
 interface ExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddExpense?: (expense: Omit<ExpenseItem, 'id'>) => void;
 }
 
 // Mock expense data sorted by amount (highest first)
@@ -59,12 +61,46 @@ const getCategoryColor = (category: string) => {
   }
 };
 
-export default function ExpenseModal({ isOpen, onClose }: ExpenseModalProps) {
-  const [activeTab, setActiveTab] = useState<"list" | "chart">("list");
+export default function ExpenseModal({ isOpen, onClose, onAddExpense }: ExpenseModalProps) {
+  const [activeTab, setActiveTab] = useState<"list" | "chart" | "add">("list");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [formData, setFormData] = useState({
+    description: "",
+    amount: "",
+    category: "Food",
+    date: new Date().toISOString().split('T')[0]
+  });
   
   const totalExpenses = mockExpenseData.reduce((sum, expense) => sum + expense.amount, 0);
   const categories = ["All", ...Array.from(new Set(mockExpenseData.map(expense => expense.category)))];
+
+  const handleSubmit = () => {
+    if (formData.description && formData.amount) {
+      const newExpense: Omit<ExpenseItem, 'id'> = {
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        category: formData.category,
+        date: formData.date
+      };
+      onAddExpense?.(newExpense);
+      setFormData({
+        description: "",
+        amount: "",
+        category: "Food",
+        date: new Date().toISOString().split('T')[0]
+      });
+      setActiveTab("list");
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      description: "",
+      amount: "",
+      category: "Food",
+      date: new Date().toISOString().split('T')[0]
+    });
+  };
   
   const filteredExpenses = selectedCategory === "All" 
     ? mockExpenseData 
@@ -85,23 +121,32 @@ export default function ExpenseModal({ isOpen, onClose }: ExpenseModalProps) {
       icon="💸"
       size="md"
       footer={
-        <div className="flex space-x-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 px-4 bg-muted text-foreground rounded-lg font-medium hover:bg-muted/80 transition-colors focus-ring-luxury"
-          >
-            Close
-          </button>
-          <button
-            onClick={() => {
-              // TODO: Implement add expense functionality
-              console.log("Add expense clicked");
+        activeTab === "add" ? (
+          <ModalActions
+            onCancel={() => {
+              resetForm();
+              setActiveTab("list");
             }}
-            className="flex-1 py-3 px-4 bg-red-500 text-background rounded-lg font-medium hover:bg-red-600 transition-colors focus-ring-luxury"
-          >
-            + Add Expense
-          </button>
-        </div>
+            onConfirm={handleSubmit}
+            cancelLabel="Cancel"
+            confirmLabel="Add Expense"
+          />
+        ) : (
+          <div className="flex space-x-3">
+            <button
+              onClick={onClose}
+              className="flex-1 py-3 px-4 bg-muted text-foreground rounded-lg font-medium hover:bg-muted/80 transition-colors focus-ring-luxury"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => setActiveTab("add")}
+              className="flex-1 py-3 px-4 bg-red-500 text-background rounded-lg font-medium hover:bg-red-600 transition-colors focus-ring-luxury"
+            >
+              + Add Expense
+            </button>
+          </div>
+        )
       }
     >
       {/* Total Expenses */}
@@ -131,6 +176,16 @@ export default function ExpenseModal({ isOpen, onClose }: ExpenseModalProps) {
           }`}
         >
           Chart
+        </button>
+        <button
+          onClick={() => setActiveTab("add")}
+          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 ${
+            activeTab === "add"
+              ? "bg-red-500 text-background"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Add
         </button>
       </div>
 
@@ -223,9 +278,69 @@ export default function ExpenseModal({ isOpen, onClose }: ExpenseModalProps) {
             )}
           </div>
         </div>
-      ) : (
+      ) : activeTab === "chart" ? (
         <div>
           <ExpenseChart />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <ModalSection 
+            icon="💸"
+            title="Add New Expense"
+            description="Track your spending and expenses"
+          />
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Description</label>
+              <input
+                type="text"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="e.g., Grocery Shopping, Gas, Rent"
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Amount</label>
+              <input
+                type="number"
+                value={formData.amount}
+                onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                placeholder="0.00"
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Category</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              >
+                <option value="Food">Food</option>
+                <option value="Housing">Housing</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Education">Education</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Date</label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+            </div>
+          </div>
         </div>
       )}
     </Modal>

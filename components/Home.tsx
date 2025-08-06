@@ -457,14 +457,22 @@ export default function Home() {
       {showIncomeModal && (
         <IncomeModal 
           isOpen={showIncomeModal}
-          onClose={() => setShowIncomeModal(false)} 
+          onClose={() => setShowIncomeModal(false)}
+          onAddIncome={(income) => {
+            console.log("New income added:", income);
+            // TODO: Add to income list or update financial data
+          }}
         />
       )}
 
       {showExpenseModal && (
         <ExpenseModal 
           isOpen={showExpenseModal}
-          onClose={() => setShowExpenseModal(false)} 
+          onClose={() => setShowExpenseModal(false)}
+          onAddExpense={(expense) => {
+            console.log("New expense added:", expense);
+            // TODO: Add to expense list or update financial data
+          }}
         />
       )}
 

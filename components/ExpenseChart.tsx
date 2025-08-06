@@ -38,7 +38,7 @@ const mockMonthlyExpenseData = {
 };
 
 export default function ExpenseChart() {
-  const chartRef = useRef<ChartJS>(null);
+  const chartRef = useRef<ChartJS<'bar'>>(null);
 
   const data: ChartData<'bar'> = {
     labels: mockMonthlyExpenseData.months,

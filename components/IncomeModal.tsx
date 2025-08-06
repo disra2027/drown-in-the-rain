@@ -17,6 +17,7 @@ interface IncomeTrack {
 interface IncomeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddIncome?: (income: Omit<IncomeTrack, 'id'>) => void;
 }
 
 // Mock income data
@@ -31,10 +32,48 @@ const mockIncomeData: IncomeTrack[] = [
   { id: 8, source: "Course Sales", amount: 450.00, type: "digital", date: "2024-11-25", description: "Online course revenue" }
 ];
 
-export default function IncomeModal({ isOpen, onClose }: IncomeModalProps) {
-  const [activeTab, setActiveTab] = useState<"list" | "chart">("list");
+export default function IncomeModal({ isOpen, onClose, onAddIncome }: IncomeModalProps) {
+  const [activeTab, setActiveTab] = useState<"list" | "chart" | "add">("list");
+  const [formData, setFormData] = useState({
+    source: "",
+    amount: "",
+    type: "monthly",
+    description: "",
+    date: new Date().toISOString().split('T')[0]
+  });
 
   const totalIncome = mockIncomeData.reduce((sum, income) => sum + income.amount, 0);
+
+  const handleSubmit = () => {
+    if (formData.source && formData.amount) {
+      const newIncome: Omit<IncomeTrack, 'id'> = {
+        source: formData.source,
+        amount: parseFloat(formData.amount),
+        type: formData.type,
+        description: formData.description,
+        date: formData.date
+      };
+      onAddIncome?.(newIncome);
+      setFormData({
+        source: "",
+        amount: "",
+        type: "monthly",
+        description: "",
+        date: new Date().toISOString().split('T')[0]
+      });
+      setActiveTab("list");
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      source: "",
+      amount: "",
+      type: "monthly", 
+      description: "",
+      date: new Date().toISOString().split('T')[0]
+    });
+  };
 
   return (
     <Modal
@@ -44,23 +83,32 @@ export default function IncomeModal({ isOpen, onClose }: IncomeModalProps) {
       icon="💰"
       size="md"
       footer={
-        <div className="flex space-x-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 px-4 bg-muted text-foreground rounded-lg font-medium hover:bg-muted/80 transition-colors focus-ring-luxury"
-          >
-            Close
-          </button>
-          <button
-            onClick={() => {
-              // TODO: Implement add income functionality
-              console.log("Add income clicked");
+        activeTab === "add" ? (
+          <ModalActions
+            onCancel={() => {
+              resetForm();
+              setActiveTab("list");
             }}
-            className="flex-1 py-3 px-4 bg-gold text-background rounded-lg font-medium hover:bg-gold-light transition-colors focus-ring-luxury"
-          >
-            + Add Income
-          </button>
-        </div>
+            onConfirm={handleSubmit}
+            cancelLabel="Cancel"
+            confirmLabel="Add Income"
+          />
+        ) : (
+          <div className="flex space-x-3">
+            <button
+              onClick={onClose}
+              className="flex-1 py-3 px-4 bg-muted text-foreground rounded-lg font-medium hover:bg-muted/80 transition-colors focus-ring-luxury"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => setActiveTab("add")}
+              className="flex-1 py-3 px-4 bg-gold text-background rounded-lg font-medium hover:bg-gold-light transition-colors focus-ring-luxury"
+            >
+              + Add Income
+            </button>
+          </div>
+        )
       }
     >
       {/* Total Income */}
@@ -91,6 +139,16 @@ export default function IncomeModal({ isOpen, onClose }: IncomeModalProps) {
         >
           Chart
         </button>
+        <button
+          onClick={() => setActiveTab("add")}
+          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 ${
+            activeTab === "add"
+              ? "bg-gold text-background"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Add
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -111,9 +169,78 @@ export default function IncomeModal({ isOpen, onClose }: IncomeModalProps) {
             </div>
           ))}
         </div>
-      ) : (
+      ) : activeTab === "chart" ? (
         <div>
           <IncomeChart />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <ModalSection 
+            icon="💰"
+            title="Add New Income"
+            description="Track your income sources and amounts"
+          />
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Income Source</label>
+              <input
+                type="text"
+                value={formData.source}
+                onChange={(e) => setFormData(prev => ({ ...prev, source: e.target.value }))}
+                placeholder="e.g., Salary, Freelance, Investment"
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Amount</label>
+              <input
+                type="number"
+                value={formData.amount}
+                onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                placeholder="0.00"
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Income Type</label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+              >
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="one-time">One-time</option>
+                <option value="passive">Passive</option>
+                <option value="project">Project</option>
+                <option value="business">Business</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Date</label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Description (Optional)</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Additional details about this income"
+                className="w-full px-3 py-2 bg-muted rounded-lg border border-muted-foreground/20 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent resize-none"
+                rows={3}
+              />
+            </div>
+          </div>
         </div>
       )}
     </Modal>

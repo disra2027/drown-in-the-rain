@@ -38,7 +38,7 @@ const mockChartData = {
 };
 
 export default function IncomeChart() {
-  const chartRef = useRef<ChartJS>(null);
+  const chartRef = useRef<ChartJS<'bar'>>(null);
 
   const data: ChartData<'bar' | 'line'> = {
     labels: mockChartData.months,
@@ -127,7 +127,7 @@ export default function IncomeChart() {
             return `${label}: $${value.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
           },
           afterBody: function(tooltipItems) {
-            const month = tooltipItems[0].label;
+            // const month = tooltipItems[0].label;
             const income = tooltipItems.find(item => item.dataset.label === 'Monthly Income')?.parsed.y || 0;
             const normalExpenses = tooltipItems.find(item => item.dataset.label === 'Normal Expenses')?.parsed.y || 0;
             const netIncome = income - normalExpenses;

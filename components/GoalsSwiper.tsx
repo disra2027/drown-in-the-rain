@@ -6,9 +6,10 @@ import { Goal } from "./GoalsModal";
 interface GoalsSwiperProps {
   goals: Goal[];
   onGoalClick?: (goal: Goal) => void;
+  onUpdateGoal?: (updatedGoal: Goal) => void;
 }
 
-export default function GoalsSwiper({ goals, onGoalClick }: GoalsSwiperProps) {
+export default function GoalsSwiper({ goals, onGoalClick, onUpdateGoal }: GoalsSwiperProps) {
   const favoriteGoals = goals.filter(goal => goal.isFavorite);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
