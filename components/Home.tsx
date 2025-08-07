@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import { useAppState } from "@/hooks/useAppState";
@@ -202,7 +203,13 @@ const mockProjectTasks = [
 
 export default function Home() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const appState = useAppState();
+  
+  // Refs for scrolling to components
+  const weatherRef = React.useRef<HTMLDivElement>(null);
+  const projectsRef = React.useRef<HTMLDivElement>(null);
+  const goalsRef = React.useRef<HTMLDivElement>(null);
   
   // Initialize state with mock data
   const {
@@ -318,6 +325,31 @@ export default function Home() {
     setShowChecklistModal(true);
   };
 
+  // Scroll handlers for smooth navigation to components
+  const handleScrollToWeather = () => {
+    weatherRef.current?.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'center',
+      inline: 'nearest' 
+    });
+  };
+
+  const handleScrollToProjects = () => {
+    projectsRef.current?.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'center',
+      inline: 'nearest' 
+    });
+  };
+
+  const handleScrollToGoals = () => {
+    goalsRef.current?.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'center',
+      inline: 'nearest' 
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header with greeting and user info */}
@@ -348,7 +380,9 @@ export default function Home() {
 
       <main className="px-4 py-6 space-y-6 pb-20">
         {/* Weather Widget */}
-        <WeatherWidget data={mockWeatherData} />
+        <div ref={weatherRef}>
+          <WeatherWidget data={mockWeatherData} />
+        </div>
         
         {/* Music Player */}
         <MusicPlayer 
@@ -463,7 +497,7 @@ export default function Home() {
         </div>
 
         {/* Goals Section */}
-        <div className="space-y-4">
+        <div ref={goalsRef} className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-foreground">Your Goals</h3>
             <button
@@ -492,12 +526,14 @@ export default function Home() {
         />
 
         {/* Project Tasks */}
-        <ProjectTasks 
-          projects={mockProjectTasks}
-          collapsedProjects={collapsedProjects}
-          expandingProjects={expandingProjects}
-          onToggleProject={toggleProject}
-        />
+        <div ref={projectsRef}>
+          <ProjectTasks 
+            projects={mockProjectTasks}
+            collapsedProjects={collapsedProjects}
+            expandingProjects={expandingProjects}
+            onToggleProject={toggleProject}
+          />
+        </div>
       </main>
 
       {/* Bottom Navigation */}
@@ -508,6 +544,15 @@ export default function Home() {
         onNoteClick={handleNoteClick}
         onTodoClick={handleTodoClick}
         onChecklistClick={handleChecklistClick}
+        onIncomeClick={() => setShowIncomeModal(true)}
+        onExpenseClick={() => setShowExpenseModal(true)}
+        onGoalClick={() => setShowGoalsModal(true)}
+        onSavingsClick={() => setShowSavingsGoalModal(true)}
+        onInvestmentClick={() => setShowInvestmentModal(true)}
+        onNavigate={(path) => router.push(path)}
+        onScrollToWeather={handleScrollToWeather}
+        onScrollToProjects={handleScrollToProjects}
+        onScrollToGoals={handleScrollToGoals}
       />
 
       {/* All Modals - Conditionally rendered */}
