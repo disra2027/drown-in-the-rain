@@ -7,11 +7,17 @@ import DebtAnalyticsChart from "@/components/DebtAnalyticsChart";
 import CalendarDueDates from "@/components/CalendarDueDates";
 import IncomingDueDates from "@/components/IncomingDueDates";
 import FinancialAddModal, { type ComprehensiveFinancialEntry } from "@/components/FinancialAddModal";
+import DailyIncomeExpenseChart from "@/components/DailyIncomeExpenseChart";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 export default function FinancialPage() {
+  const [currentTab, setCurrentTab] = useState<'overall' | 'daily'>('overall');
   const [currentDebtPage, setCurrentDebtPage] = useState(0);
   const [selectedYear, setSelectedYear] = useState(2025);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  
+  // Prevent body scroll when modal is open
+  useScrollLock(isAddModalOpen);
   
   // Mock debt data - expanded for pagination
   const allDebts = [
@@ -32,6 +38,80 @@ export default function FinancialPage() {
   
   const totalDebt = allDebts.reduce((sum, debt) => sum + debt.amount, 0);
   const totalMonthly = allDebts.reduce((sum, debt) => sum + debt.monthly, 0);
+
+  // Mock daily transactions data
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [transactionFilter, setTransactionFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'time' | 'amount' | 'category'>('time');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  const dailyTransactions: Array<{
+    id: number;
+    type: 'income' | 'expense';
+    category: string;
+    description: string;
+    amount: number;
+    time: string;
+  }> = [
+    { id: 1, type: 'expense', category: 'Food', description: 'Lunch at cafe', amount: 15.50, time: '12:30' },
+    { id: 2, type: 'expense', category: 'Transport', description: 'Bus fare', amount: 3.25, time: '09:15' },
+    { id: 3, type: 'income', category: 'Freelance', description: 'Client payment', amount: 250.00, time: '14:45' },
+    { id: 4, type: 'expense', category: 'Entertainment', description: 'Movie tickets', amount: 28.00, time: '19:20' },
+    { id: 5, type: 'income', category: 'Salary', description: 'Morning bonus', amount: 120.00, time: '10:00' },
+    { id: 6, type: 'expense', category: 'Shopping', description: 'Groceries', amount: 45.80, time: '16:30' },
+    { id: 7, type: 'income', category: 'Investment', description: 'Dividend', amount: 75.25, time: '11:15' },
+    { id: 8, type: 'expense', category: 'Food', description: 'Coffee', amount: 4.50, time: '08:30' },
+    { id: 9, type: 'expense', category: 'Transport', description: 'Uber', amount: 12.75, time: '21:45' },
+    { id: 10, type: 'income', category: 'Side gig', description: 'Tutoring', amount: 60.00, time: '18:00' },
+    { id: 11, type: 'expense', category: 'Food', description: 'Second coffee', amount: 5.25, time: '08:30' },
+    { id: 12, type: 'expense', category: 'Transport', description: 'Parking fee', amount: 8.00, time: '12:30' },
+    { id: 13, type: 'income', category: 'Tips', description: 'Cash tips', amount: 25.50, time: '18:00' },
+    { id: 14, type: 'expense', category: 'Food', description: 'Snack', amount: 3.75, time: '14:45' },
+    { id: 15, type: 'income', category: 'Refund', description: 'Store refund', amount: 15.00, time: '10:00' },
+    { id: 16, type: 'expense', category: 'Food', description: 'Late night snack', amount: 8.75, time: '23:30' },
+    { id: 17, type: 'expense', category: 'Transport', description: 'Late taxi home', amount: 15.50, time: '01:15' },
+    { id: 18, type: 'expense', category: 'Food', description: 'Early breakfast', amount: 12.25, time: '06:45' },
+    { id: 19, type: 'income', category: 'Gig work', description: 'Early delivery', amount: 35.00, time: '07:30' },
+    { id: 20, type: 'expense', category: 'Food', description: 'Night coffee', amount: 4.25, time: '02:30' },
+  ];
+
+  // Get unique categories for filter dropdown
+  const allCategories = Array.from(new Set(dailyTransactions.map(t => t.category))).sort();
+
+  // Filter and sort transactions
+  const filteredAndSortedTransactions = dailyTransactions
+    .filter(transaction => {
+      // Type filter
+      if (transactionFilter !== 'all' && transaction.type !== transactionFilter) {
+        return false;
+      }
+      // Category filter
+      if (categoryFilter !== 'all' && transaction.category !== categoryFilter) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'time':
+          comparison = a.time.localeCompare(b.time);
+          break;
+        case 'amount':
+          comparison = Math.abs(a.amount) - Math.abs(b.amount);
+          break;
+        case 'category':
+          comparison = a.category.localeCompare(b.category);
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
 
   // Handler for adding new financial entries
   const handleAddFinancialEntry = (entry: ComprehensiveFinancialEntry) => {
@@ -125,10 +205,47 @@ export default function FinancialPage() {
         </div>
       </header>
 
+      {/* Tab Navigation */}
+      <div className="px-4 py-2 bg-card/50 border-b border-border/30">
+        <div className="flex space-x-1 bg-secondary/30 rounded-lg p-1 relative">
+          {/* Active Tab Indicator */}
+          <div 
+            className={`absolute top-1 bottom-1 bg-card rounded-md shadow-sm transition-all duration-500 ease-out ${
+              currentTab === 'overall' ? 'left-1 right-1/2 mr-0.5' : 'left-1/2 right-1 ml-0.5'
+            }`}
+          />
+          
+          <button
+            onClick={() => setCurrentTab('overall')}
+            className={`relative flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95 ${
+              currentTab === 'overall'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <span className="relative z-10">Overall</span>
+          </button>
+          <button
+            onClick={() => setCurrentTab('daily')}
+            className={`relative flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95 ${
+              currentTab === 'daily'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <span className="relative z-10">Daily Tracking</span>
+          </button>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="px-4 py-6 pb-20">
-        <div className="space-y-4">
-          <FinancialOverviewChart />
+      <main className="px-4 py-6 pb-28 relative overflow-hidden">
+        {currentTab === 'overall' ? (
+          <div 
+            key="overall-tab"
+            className="space-y-4 animate-in slide-in-from-right-6 fade-in duration-500"
+          >
+            <FinancialOverviewChart />
           
           {/* Current Month Financial Metrics - Ratio Line */}
           <div className="bg-card rounded-xl p-4 border border-border">
@@ -377,10 +494,297 @@ export default function FinancialPage() {
 
           {/* Incoming Due Dates Component */}
           <IncomingDueDates />
-        </div>
+          </div>
+        ) : (
+          <div 
+            key="daily-tab"
+            className="space-y-4 animate-in slide-in-from-left-6 fade-in duration-500 pb-16"
+          >
+            {/* Daily Financial Tracking */}
+            
+            {/* Daily Summary Cards */}
+            <div className="bg-card rounded-xl p-4 border border-border">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Daily Summary</h2>
+              
+              {/* Daily Summary Cards */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-lg p-3 border border-green-500/20">
+                  <div className="text-center">
+                    <p className="text-xs text-green-400 font-medium mb-1">Income</p>
+                    <p className="text-lg font-bold text-green-400">
+                      +${filteredAndSortedTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-lg p-3 border border-red-500/20">
+                  <div className="text-center">
+                    <p className="text-xs text-red-400 font-medium mb-1">Expenses</p>
+                    <p className="text-lg font-bold text-red-400">
+                      -${filteredAndSortedTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg p-3 border border-blue-500/20">
+                  <div className="text-center">
+                    <p className="text-xs text-blue-400 font-medium mb-1">Net</p>
+                    <p className="text-lg font-bold text-blue-400">
+                      ${(filteredAndSortedTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) - 
+                         filteredAndSortedTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Daily Income/Expense Chart */}
+            <DailyIncomeExpenseChart 
+              transactions={dailyTransactions}
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+            />
+
+            {/* Transaction List */}
+            <div className="bg-card rounded-xl p-4 border border-border">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-md font-semibold text-foreground">Today&apos;s Transactions</h3>
+                  <span className="text-xs text-muted-foreground">
+                    {filteredAndSortedTransactions.length} transactions
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs bg-secondary/30 hover:bg-secondary/50 text-muted-foreground hover:text-foreground rounded transition-all duration-200"
+                >
+                  <svg 
+                    className={`w-3 h-3 transition-transform duration-200 ${showFilters ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <span>
+                    {showFilters ? 'Hide' : 'Filter'}
+                  </span>
+                </button>
+              </div>
+
+              {/* Filter and Sort Controls */}
+              {showFilters && (
+                <div className="space-y-3 mb-4 p-3 bg-secondary/20 rounded-lg animate-in slide-in-from-top-2 fade-in duration-300">
+                <div className="flex flex-wrap gap-3">
+                  {/* Type Filter */}
+                  <div className="flex-1 min-w-[120px]">
+                    <label className="block text-xs text-muted-foreground mb-1">Type</label>
+                    <select
+                      value={transactionFilter}
+                      onChange={(e) => setTransactionFilter(e.target.value as 'all' | 'income' | 'expense')}
+                      className="w-full px-2 py-1 text-sm bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    >
+                      <option value="all">All Types</option>
+                      <option value="income">Income Only</option>
+                      <option value="expense">Expenses Only</option>
+                    </select>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div className="flex-1 min-w-[120px]">
+                    <label className="block text-xs text-muted-foreground mb-1">Category</label>
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="w-full px-2 py-1 text-sm bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    >
+                      <option value="all">All Categories</option>
+                      {allCategories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {/* Sort By */}
+                  <div className="flex-1 min-w-[120px]">
+                    <label className="block text-xs text-muted-foreground mb-1">Sort By</label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as 'time' | 'amount' | 'category')}
+                      className="w-full px-2 py-1 text-sm bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    >
+                      <option value="time">Time</option>
+                      <option value="amount">Amount</option>
+                      <option value="category">Category</option>
+                    </select>
+                  </div>
+
+                  {/* Sort Order */}
+                  <div className="flex-1 min-w-[120px]">
+                    <label className="block text-xs text-muted-foreground mb-1">Order</label>
+                    <select
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                      className="w-full px-2 py-1 text-sm bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    >
+                      <option value="desc">
+                        {sortBy === 'time' ? 'Latest First' : sortBy === 'amount' ? 'Highest First' : 'Z to A'}
+                      </option>
+                      <option value="asc">
+                        {sortBy === 'time' ? 'Earliest First' : sortBy === 'amount' ? 'Lowest First' : 'A to Z'}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Quick Filter Buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      setTransactionFilter('all');
+                      setCategoryFilter('all');
+                      setSortBy('time');
+                      setSortOrder('desc');
+                    }}
+                    className="px-3 py-1 text-xs bg-secondary hover:bg-secondary/80 text-muted-foreground rounded transition-colors"
+                  >
+                    Reset Filters
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTransactionFilter('income');
+                      setSortBy('amount');
+                      setSortOrder('desc');
+                    }}
+                    className="px-3 py-1 text-xs bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30 rounded transition-colors"
+                  >
+                    Top Income
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTransactionFilter('expense');
+                      setSortBy('amount');
+                      setSortOrder('desc');
+                    }}
+                    className="px-3 py-1 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded transition-colors"
+                  >
+                    Top Expenses
+                  </button>
+                </div>
+              </div>
+              )}
+              
+              {filteredAndSortedTransactions.length > 0 ? (
+                <div className="space-y-3">
+                  {filteredAndSortedTransactions
+                    .map((transaction) => (
+                    <div 
+                      key={transaction.id}
+                      className="flex items-center justify-between p-3 bg-secondary/20 rounded-lg transition-all duration-300 hover:bg-secondary/30"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          transaction.type === 'income' 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {transaction.type === 'income' ? '↗' : '↙'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{transaction.description}</p>
+                          <p className="text-xs text-muted-foreground">{transaction.category} • {transaction.time}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-semibold ${
+                          transaction.type === 'income' ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-4xl mb-2">📊</div>
+                  <p className="text-sm">
+                    {transactionFilter === 'all' && categoryFilter === 'all' 
+                      ? 'No transactions for this date' 
+                      : 'No transactions match your filters'}
+                  </p>
+                  {(transactionFilter !== 'all' || categoryFilter !== 'all') && (
+                    <button 
+                      onClick={() => {
+                        setTransactionFilter('all');
+                        setCategoryFilter('all');
+                      }}
+                      className="mt-2 px-3 py-1 text-xs bg-primary/20 hover:bg-primary/30 text-primary rounded transition-colors"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
       </main>
 
       <BottomNavigation />
+
+      {/* Sticky Quick Add - Only for Daily Tab */}
+      {currentTab === 'daily' && (
+        <div className="fixed bottom-16 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/50 shadow-lg z-30 animate-in slide-in-from-bottom-4 fade-in duration-500">
+          <div className="px-4 py-2.5">
+            {/* Compact Header */}
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center space-x-2">
+                <div className="w-1.5 h-1.5 bg-gold rounded-full animate-pulse"></div>
+                <span className="text-xs text-muted-foreground">Balance:</span>
+              </div>
+              <span className={`text-sm font-bold ${
+                (dailyTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) - 
+                 dailyTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)) >= 0
+                  ? 'text-green-400' : 'text-red-400'
+              }`}>
+                ${(dailyTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) - 
+                   dailyTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)).toFixed(2)}
+              </span>
+            </div>
+
+            {/* Compact Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="group flex items-center justify-center space-x-2 py-2.5 bg-gradient-to-r from-green-500/15 to-green-500/10 hover:from-green-500/25 hover:to-green-500/20 rounded-lg border border-green-500/30 hover:border-green-400/50 transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
+                  <svg className="w-4 h-4 text-green-400 group-hover:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <span className="text-green-400 font-medium text-sm group-hover:text-green-300">Income</span>
+              </button>
+
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="group flex items-center justify-center space-x-2 py-2.5 bg-gradient-to-r from-red-500/15 to-red-500/10 hover:from-red-500/25 hover:to-red-500/20 rounded-lg border border-red-500/30 hover:border-red-400/50 transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center group-hover:bg-red-500/30 transition-colors">
+                  <svg className="w-4 h-4 text-red-400 group-hover:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                </div>
+                <span className="text-red-400 font-medium text-sm group-hover:text-red-300">Expense</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Financial Add Modal */}
       <FinancialAddModal
