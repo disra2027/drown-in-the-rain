@@ -280,7 +280,7 @@ export default function FinancialOverviewChart() {
         boxWidth: 12,
         boxHeight: 12,
         boxPadding: 3,
-        usePointStyle: true,
+        usePointStyle: false,
         padding: {
           top: 12,
           right: 16,
@@ -299,21 +299,42 @@ export default function FinancialOverviewChart() {
             else if (label.includes('Expense')) icon = '💸';
             else if (label.includes('Moving')) icon = '📈';
             
+            // Handle null values
+            if (value === null || value === undefined) {
+              return `${icon} ${label}: No data`;
+            }
+            
             return `${icon} ${label}: $${value.toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
           },
           afterBody: function(tooltipItems) {
-            const income = tooltipItems.find(item => item.dataset.label === 'Income')?.parsed.y || 0;
-            const expenses = tooltipItems.find(item => item.dataset.label === 'Expenses')?.parsed.y || 0;
-            const movingAvg = tooltipItems.find(item => item.dataset.label === 'Expense Moving Average (3M)')?.parsed.y || 0;
-            const netIncome = income - expenses;
+            const incomeItem = tooltipItems.find(item => item.dataset.label === 'Income');
+            const expenseItem = tooltipItems.find(item => item.dataset.label === 'Expenses');
+            const movingAvgItem = tooltipItems.find(item => item.dataset.label === 'Expense Moving Average (3M)');
+            
+            const income = incomeItem?.parsed?.y ?? 0;
+            const expenses = expenseItem?.parsed?.y ?? 0;
+            const movingAvg = movingAvgItem?.parsed?.y ?? 0;
+            
+            // Only show calculations if we have valid data
+            if (income === null && expenses === null) {
+              return ['', '📊 No data available for this period'];
+            }
+            
+            const netIncome = (income || 0) - (expenses || 0);
             const savingsRate = income > 0 ? ((netIncome / income) * 100).toFixed(1) : 0;
             
-            return [
-              '',
-              `💵 Net Income: $${netIncome.toLocaleString('en-US', { minimumFractionDigits: 0 })}`,
-              `📊 Savings Rate: ${savingsRate}%`,
-              `📉 3M Avg: $${movingAvg.toLocaleString('en-US', { minimumFractionDigits: 0 })}`
-            ];
+            const result = [''];
+            
+            if (income !== null && expenses !== null) {
+              result.push(`💵 Net Income: $${netIncome.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
+              result.push(`📊 Savings Rate: ${savingsRate}%`);
+            }
+            
+            if (movingAvg !== null && movingAvg > 0) {
+              result.push(`📉 3M Avg: $${movingAvg.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
+            }
+            
+            return result;
           },
           footer: function() {
             return 'Click to view details';
