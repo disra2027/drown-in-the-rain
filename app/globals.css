@@ -581,3 +581,46 @@ header.sticky {
     transform: translateX(0);
   }
 }
+
+/* Financial Icon Circle Button Styles */
+.financial-icon-circle {
+  @apply w-8 h-8 rounded-full flex items-center justify-center border flex-shrink-0 transition-colors;
+}
+
+.financial-icon-circle-sm {
+  @apply w-6 h-6 rounded-full flex items-center justify-center border flex-shrink-0 transition-colors;
+}
+
+.financial-icon-circle-lg {
+  @apply w-10 h-10 rounded-full flex items-center justify-center border flex-shrink-0 transition-colors;
+}
+
+/* Color variants */
+.financial-icon-circle.income {
+  @apply bg-green-500/10 border-green-500/20;
+}
+
+.financial-icon-circle.expense {
+  @apply bg-red-500/10 border-red-500/20;
+}
+
+.financial-icon-circle.investment {
+  @apply bg-blue-500/10 border-blue-500/20;
+}
+
+.financial-icon-circle.debt {
+  @apply bg-orange-500/10 border-orange-500/20;
+}
+
+.financial-icon-circle.goal {
+  @apply bg-purple-500/10 border-purple-500/20;
+}
+
+.financial-icon-circle.gold {
+  @apply bg-gold/20 border-gold/30;
+}
+
+/* Interactive states */
+.financial-icon-circle:hover {
+  @apply scale-105;
+}
