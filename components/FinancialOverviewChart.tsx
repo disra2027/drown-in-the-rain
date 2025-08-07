@@ -143,7 +143,7 @@ export default function FinancialOverviewChart() {
         type: 'bar' as const,
         label: 'Income',
         data: currentData.income,
-        backgroundColor: (context) => {
+        backgroundColor: (context: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
           const canvas = context.chart.canvas;
           const ctx = canvas.getContext('2d');
           if (ctx) {
@@ -164,7 +164,7 @@ export default function FinancialOverviewChart() {
         type: 'bar' as const,
         label: 'Expenses',
         data: currentData.expenses,
-        backgroundColor: (context) => {
+        backgroundColor: (context: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
           const canvas = context.chart.canvas;
           const ctx = canvas.getContext('2d');
           if (ctx) {
@@ -202,10 +202,6 @@ export default function FinancialOverviewChart() {
         pointHoverBorderColor: 'transparent',
         pointHoverBorderWidth: 0,
         order: 1,
-        shadowOffsetX: 3,
-        shadowOffsetY: 3,
-        shadowBlur: 10,
-        shadowColor: 'rgba(251, 191, 36, 0.3)'
       }
     ]
   };
@@ -228,7 +224,7 @@ export default function FinancialOverviewChart() {
     animations: {
       y: {
         easing: 'easeInOutElastic',
-        from: (ctx) => {
+        from: (ctx: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
           if (ctx.type === 'data' && ctx.mode === 'default') {
             const chart = ctx.chart;
             const {chartArea} = chart;
@@ -237,11 +233,11 @@ export default function FinancialOverviewChart() {
             }
             return chartArea.bottom;
           }
+          return null;
         }
       }
     },
     hover: {
-      animationDuration: 400,
       mode: 'index' as const,
       intersect: false
     },
@@ -254,7 +250,6 @@ export default function FinancialOverviewChart() {
       },
       tooltip: {
         enabled: true,
-        external: false,
         backgroundColor: 'rgba(15, 23, 42, 0.95)',
         titleColor: 'rgb(251, 191, 36)',
         titleFont: {
@@ -264,12 +259,12 @@ export default function FinancialOverviewChart() {
         bodyColor: 'rgb(248, 250, 252)',
         bodyFont: {
           size: 13,
-          weight: '500'
+          weight: 500
         },
         footerColor: 'rgb(156, 163, 175)',
         footerFont: {
           size: 11,
-          weight: '400'
+          weight: 400
         },
         borderColor: 'rgb(251, 191, 36)',
         borderWidth: 2,
@@ -347,7 +342,6 @@ export default function FinancialOverviewChart() {
         grid: {
           color: 'rgba(156, 163, 175, 0.08)',
           lineWidth: 1,
-          drawBorder: false,
           drawTicks: false,
           tickLength: 0
         },
@@ -359,7 +353,7 @@ export default function FinancialOverviewChart() {
           padding: 12,
           font: {
             size: 12,
-            weight: '500'
+            weight: 500
           }
         }
       },
@@ -368,7 +362,6 @@ export default function FinancialOverviewChart() {
         grid: {
           color: 'rgba(107, 114, 128, 0.2)',
           lineWidth: 1,
-          drawBorder: false,
           drawTicks: false
         },
         border: {
@@ -379,7 +372,7 @@ export default function FinancialOverviewChart() {
           padding: 15,
           font: {
             size: 12,
-            weight: '500'
+            weight: 500
           },
           callback: function(value) {
             const num = value as number;

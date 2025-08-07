@@ -76,7 +76,7 @@ export default function CalendarDueDates({ dueDates: propDueDates }: CalendarDue
       
       if (!selectedDate) return;
       
-      let newDate = new Date(selectedDate);
+      const newDate = new Date(selectedDate);
       
       switch (e.key) {
         case 'ArrowLeft':
@@ -414,7 +414,7 @@ export default function CalendarDueDates({ dueDates: propDueDates }: CalendarDue
                     onClick={() => setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
                     onMouseEnter={() => {
                       setHoveredDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
-                      hasPayments && setShowPreview(true);
+                      if (hasPayments) setShowPreview(true);
                     }}
                     onMouseLeave={() => {
                       setHoveredDate(null);
