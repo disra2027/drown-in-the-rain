@@ -198,10 +198,10 @@ export default function FloatingActionButton({
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-all duration-300 animate-in fade-in" />
       )}
 
-      {/* Instruction Bar - Under Header (Full Width on Mobile) */}
+      {/* Instruction Bar - At Bottom of Screen */}
       {isExpanded && (
-        <div className="fixed top-20 sm:top-24 left-0 sm:left-1/2 sm:-translate-x-1/2 right-0 sm:right-auto z-50 px-4 sm:px-0 sm:max-w-none">
-          <div className="bg-card/95 backdrop-blur-lg text-foreground px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-full shadow-xl border border-border/50 animate-in slide-in-from-top-2 fade-in duration-500 mx-4 sm:mx-0">
+        <div className="fixed bottom-4 left-0 sm:left-1/2 sm:-translate-x-1/2 right-0 sm:right-auto z-50 px-4 sm:px-0 sm:max-w-none">
+          <div className="bg-card/95 backdrop-blur-lg text-foreground px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-full shadow-xl border border-border/50 animate-in slide-in-from-bottom-2 fade-in duration-500 mx-4 sm:mx-0">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full animate-pulse flex-shrink-0 ${
                 activeCategory ? 'bg-green-400' : 'bg-gold'
@@ -334,61 +334,78 @@ export default function FloatingActionButton({
                       </div>
                     </button>
 
-                    {/* Sub-menu Items */}
-                    <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 pointer-events-none">
+                    {/* Sub-menu Items - Positioned lower for better thumb reach */}
+                    <div 
+                      className="absolute right-full mr-6 pointer-events-none"
+                      style={{
+                        bottom: `${(40 - (index * getResponsiveSpacing()))}px`,
+                        top: 'auto'
+                      }}
+                    >
                       {category.items.map((item, itemIndex) => {
                         const y = itemIndex * getResponsiveItemSpacing();
                         return (
                           <div
                             key={itemIndex}
-                            className={`absolute group transition-all duration-300 ease-out ${
+                            className={`absolute group transition-all duration-500 ease-in-out ${
                               isActive 
-                                ? 'opacity-100 scale-100 -translate-x-0 pointer-events-auto' 
-                                : 'opacity-0 scale-75 -translate-x-8 pointer-events-none'
+                                ? 'opacity-100 scale-100 translate-x-0 pointer-events-auto' 
+                                : 'opacity-0 scale-50 translate-x-4 pointer-events-none'
                             }`}
                             style={{
                               right: '0px',
                               bottom: `${y}px`,
                               transitionDelay: isActive 
                                 ? `${0.1 + (itemIndex * 0.03)}s` 
-                                : `${(category.items.length - itemIndex - 1) * 0.02}s`
+                                : `${(category.items.length - itemIndex - 1) * 0.02}s`,
+                              transform: isActive 
+                                ? 'translateX(0) scale(1)' 
+                                : 'translateX(16px) scale(0.75)'
                             }}
                           >
-                              <button
-                                onClick={() => handleItemClick(item.action)}
-                                className={`
-                                  relative w-11 h-11 rounded-full 
-                                  bg-gradient-to-br ${category.color}
-                                  text-white
-                                  shadow-lg hover:shadow-xl
+                              {/* Label aligned to the left of button */}
+                              <div className="flex items-center gap-3">
+                                <div className={`
+                                  text-foreground text-sm font-medium
+                                  bg-background/95 backdrop-blur-sm
+                                  px-3 py-1.5 rounded-lg
+                                  shadow-lg border border-border/50
+                                  whitespace-nowrap
                                   transition-all duration-300
-                                  hover:scale-125 active:scale-110
-                                  focus:outline-none focus:ring-2 focus:ring-white/40
-                                  flex items-center justify-center
-                                  animate-in slide-in-from-bottom-4 fade-in
-                                  opacity-90 hover:opacity-100
+                                  ${isActive ? 'opacity-90' : 'opacity-0'}
                                 `}
                                 style={{
-                                  animationDelay: `${0.1 + (itemIndex * 0.03)}s`,
-                                  animationFillMode: 'both',
-                                  animationDuration: '0.2s'
+                                  transitionDelay: isActive 
+                                    ? `${0.15 + (itemIndex * 0.03)}s` 
+                                    : '0s'
                                 }}
-                              >
-                                <span className="text-base filter drop-shadow-sm">{item.icon}</span>
-                                
-                                {/* Hover tooltip */}
-                                <div className="
-                                  absolute -bottom-8 left-1/2 -translate-x-1/2
-                                  bg-background/95 backdrop-blur-sm text-foreground 
-                                  px-2.5 py-1.5 rounded-md shadow-lg text-xs font-medium 
-                                  border border-border/50 whitespace-nowrap
-                                  opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100
-                                  transition-all duration-200
-                                  pointer-events-none z-10
-                                ">
+                                >
                                   {item.label}
                                 </div>
-                              </button>
+                                
+                                <button
+                                  onClick={() => handleItemClick(item.action)}
+                                  className={`
+                                    relative w-11 h-11 rounded-full 
+                                    bg-gradient-to-br ${category.color}
+                                    text-white
+                                    shadow-lg hover:shadow-xl
+                                    transition-all duration-300
+                                    hover:scale-125 active:scale-110
+                                    focus:outline-none focus:ring-2 focus:ring-white/40
+                                    flex items-center justify-center
+                                    animate-in slide-in-from-bottom-4 fade-in
+                                    opacity-90 hover:opacity-100
+                                  `}
+                                  style={{
+                                    animationDelay: `${0.1 + (itemIndex * 0.03)}s`,
+                                    animationFillMode: 'both',
+                                    animationDuration: '0.2s'
+                                  }}
+                                >
+                                  <span className="text-base filter drop-shadow-sm">{item.icon}</span>
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
